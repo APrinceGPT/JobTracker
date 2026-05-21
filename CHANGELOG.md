@@ -86,6 +86,20 @@ Initial release of JobTracker, built end-to-end using Test-Driven Development (T
 
 ---
 
+## [1.1.0] - 2026-05-21
+
+### Changed
+
+- **Inline editing replaces the edit sheet** — every existing row is now fully editable in place without opening a modal form:
+  - **Company name, Job Title, Description**: click any cell to edit the text directly; changes are saved on Return or when focus leaves the field.
+  - **Status**: click the status cell to open a dropdown menu showing all six statuses; selecting a new value saves immediately.
+  - **Date Applied**: click the date cell to open a native date picker inline; changing the date saves immediately.
+- The sheet form is now used exclusively for **adding new applications** (+). The separate "Edit Application" sheet has been removed.
+- The list now uses a `List` with a fixed column header row, replacing the `Table`, to support live interactive controls in each cell.
+- Context menu on each row retains the **Delete** action.
+
+---
+
 ## [1.0.1] - 2026-05-21
 
 ### Fixed

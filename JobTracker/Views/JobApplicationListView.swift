@@ -3,7 +3,7 @@
 
 import SwiftUI
 
-/// The main window content: a toolbar above a compact table of applications.
+/// The main window content: a toolbar above an inline-editable list of applications.
 struct JobApplicationListView: View {
 
     @ObservedObject var viewModel: JobApplicationListViewModel
@@ -13,7 +13,7 @@ struct JobApplicationListView: View {
             if viewModel.applications.isEmpty {
                 emptyStateView
             } else {
-                tableView
+                listView
             }
         }
         .navigationTitle("Job Applications")
@@ -65,56 +65,45 @@ struct JobApplicationListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Table
+    // MARK: - Column header
 
-    private var tableView: some View {
-        Table(viewModel.applications, selection: $viewModel.selectedApplicationID) {
-            TableColumn("Company") { app in
-                Text(app.companyName)
-                    .accessibilityIdentifier("companyName_\(app.id)")
-            }
-            .width(min: 120, ideal: 160)
-
-            TableColumn("Job Title") { app in
-                Text(app.jobTitle)
-                    .accessibilityIdentifier("jobTitle_\(app.id)")
-            }
-            .width(min: 120, ideal: 160)
-
-            TableColumn("Status") { app in
-                StatusBadgeView(status: app.status)
-                    .accessibilityIdentifier("statusBadge_\(app.id)")
-            }
-            .width(min: 80, ideal: 100)
-
-            TableColumn("Description") { app in
-                Text(app.jobDescription)
-                    .lineLimit(1)
-                    .foregroundColor(.secondary)
-                    .accessibilityIdentifier("description_\(app.id)")
-            }
-            .width(min: 100, ideal: 200)
-
-            TableColumn("Date Applied") { app in
-                Text(app.dateApplied, style: .date)
-                    .accessibilityIdentifier("dateApplied_\(app.id)")
-            }
-            .width(min: 90, ideal: 110)
+    private var columnHeader: some View {
+        HStack(spacing: 8) {
+            Text("Company")
+                .frame(minWidth: 120, maxWidth: 180, alignment: .leading)
+            Text("Job Title")
+                .frame(minWidth: 120, maxWidth: 180, alignment: .leading)
+            Text("Status")
+                .frame(width: 110, alignment: .leading)
+            Text("Description")
+                .frame(minWidth: 100, maxWidth: .infinity, alignment: .leading)
+            Text("Date Applied")
+                .frame(width: 110, alignment: .leading)
         }
-        .contextMenu(forSelectionType: UUID.self) { selection in
-            if let id = selection.first,
-               let app = viewModel.applications.first(where: { $0.id == id }) {
-                Button("Edit") { viewModel.presentEditForm(for: app) }
-                Button("Delete", role: .destructive) {
-                    viewModel.selectedApplicationID = id
-                    viewModel.requestDeleteSelected()
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - List
+
+    private var listView: some View {
+        VStack(spacing: 0) {
+            columnHeader
+            Divider()
+            List(selection: $viewModel.selectedApplicationID) {
+                ForEach(viewModel.applications) { app in
+                    InlineEditRow(app: app) { updated in
+                        viewModel.updateInline(updated)
+                    } onDelete: {
+                        viewModel.selectedApplicationID = app.id
+                        viewModel.requestDeleteSelected()
+                    }
+                    .tag(app.id)
                 }
             }
-        } primaryAction: { selection in
-            if let id = selection.first,
-               let app = viewModel.applications.first(where: { $0.id == id }) {
-                viewModel.presentEditForm(for: app)
-            }
+            .listStyle(.inset)
         }
     }
 
@@ -142,16 +131,78 @@ struct JobApplicationListView: View {
         }
     }
 
-    // MARK: - Form sheet
+    // MARK: - Form sheet (add only)
 
     private var formSheet: some View {
-        let formVM = viewModel.applicationToEdit.map(JobApplicationFormViewModel.init(editing:))
-                     ?? JobApplicationFormViewModel()
-        return JobApplicationFormView(
-            viewModel: formVM,
+        JobApplicationFormView(
+            viewModel: JobApplicationFormViewModel(),
             onDismiss: { viewModel.cancelForm() },
             onSave: { app in viewModel.save(app) }
         )
+    }
+}
+
+// MARK: - Inline edit row
+
+/// A single list row with inline-editable fields for all columns.
+private struct InlineEditRow: View {
+
+    @State private var app: JobApplication
+    var onCommit: (JobApplication) -> Void
+    var onDelete: () -> Void
+
+    init(app: JobApplication, onCommit: @escaping (JobApplication) -> Void, onDelete: @escaping () -> Void) {
+        _app = State(initialValue: app)
+        self.onCommit = onCommit
+        self.onDelete = onDelete
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Company name
+            TextField("Company", text: $app.companyName)
+                .frame(minWidth: 120, maxWidth: 180)
+                .textFieldStyle(.plain)
+                .accessibilityIdentifier("companyName_\(app.id)")
+                .onSubmit { onCommit(app) }
+
+            // Job title
+            TextField("Job Title", text: $app.jobTitle)
+                .frame(minWidth: 120, maxWidth: 180)
+                .textFieldStyle(.plain)
+                .accessibilityIdentifier("jobTitle_\(app.id)")
+                .onSubmit { onCommit(app) }
+
+            // Status dropdown
+            Picker("", selection: $app.status) {
+                ForEach(ApplicationStatus.allCases, id: \.self) { s in
+                    Text(s.displayLabel).tag(s)
+                }
+            }
+            .labelsHidden()
+            .frame(width: 110)
+            .accessibilityIdentifier("statusPicker_\(app.id)")
+            .onChange(of: app.status) { onCommit(app) }
+
+            // Description
+            TextField("Description", text: $app.jobDescription)
+                .frame(minWidth: 100, maxWidth: .infinity)
+                .textFieldStyle(.plain)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("description_\(app.id)")
+                .onSubmit { onCommit(app) }
+
+            // Date applied
+            DatePicker("", selection: $app.dateApplied, displayedComponents: .date)
+                .labelsHidden()
+                .frame(width: 110)
+                .accessibilityIdentifier("dateApplied_\(app.id)")
+                .onChange(of: app.dateApplied) { onCommit(app) }
+        }
+        .padding(.vertical, 2)
+        .contextMenu {
+            Button("Delete", role: .destructive) { onDelete() }
+        }
     }
 }
 

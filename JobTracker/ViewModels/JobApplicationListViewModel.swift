@@ -75,6 +75,17 @@ final class JobApplicationListViewModel: ObservableObject {
         }
     }
 
+    /// Persists an inline edit to an existing application.
+    func updateInline(_ application: JobApplication) {
+        do {
+            try application.validate()
+            try store.update(application)
+            loadApplications()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     /// Requests deletion of the currently selected application.
     func requestDeleteSelected() {
         guard selectedApplicationID != nil else { return }

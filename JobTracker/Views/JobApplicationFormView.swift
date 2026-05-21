@@ -18,7 +18,7 @@ struct JobApplicationFormView: View {
         VStack(spacing: 0) {
             // Title bar
             HStack {
-                Text(viewModel.isEditing ? "Edit Application" : "Add Application")
+                Text("Add Application")
                     .font(.headline)
                     .accessibilityIdentifier("formTitle")
                 Spacer()
