@@ -86,6 +86,24 @@ Initial release of JobTracker, built end-to-end using Test-Driven Development (T
 
 ---
 
+## [1.2.0] - 2026-05-21
+
+### Changed
+
+- **Date field — stepper removed, direct text input** — the date column and the add form now render a plain `TextField` accepting `MM/DD/YYYY` input. No calendar popover, no up/down stepper arrows. The field normalises the format on commit (e.g. `5/3/2026` → `05/03/2026`). Invalid input turns the field red and blocks saving until corrected.
+
+- **Status — redesigned color-coded badge with dot indicator** — each status now shows a solid colored circle followed by its label inside a pill shape with a color-matched background and a subtle border. Colors are semantically distinct and accessible at a glance without reading the text:
+  - Pending: amber
+  - Applied: steel blue
+  - In Process: violet
+  - Waiting: teal
+  - Hired: forest green (bold, terminal)
+  - Ghosted: muted red (bold, terminal)
+
+- **Status picker — badge renders as the menu trigger** — clicking a status in the inline row or the add form opens a dropdown menu where every option shows its colored badge. The current selection is shown with a checkmark. No plain-text dropdown remains anywhere.
+
+---
+
 ## [1.1.0] - 2026-05-21
 
 ### Changed

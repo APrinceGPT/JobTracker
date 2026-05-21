@@ -3,16 +3,17 @@
 
 import SwiftUI
 
-/// Sheet-based form for adding or editing a job application.
+/// Sheet-based form for adding a new job application.
 struct JobApplicationFormView: View {
 
     @ObservedObject var viewModel: JobApplicationFormViewModel
 
-    /// Called by the parent to dismiss the sheet without saving.
     var onDismiss: () -> Void = {}
-
-    /// Called with the completed application when the user taps Save.
     var onSave: (JobApplication) -> Void = { _ in }
+
+    /// Editable text for the date field (MM/DD/YYYY).
+    @State private var dateText: String = string(from: Date())
+    @State private var dateInvalid: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,19 +61,54 @@ struct JobApplicationFormView: View {
                 }
 
                 Section("Status & Date") {
-                    Picker("Status", selection: $viewModel.status) {
-                        ForEach(ApplicationStatus.allCases, id: \.self) { status in
-                            Text(status.displayLabel).tag(status)
+                    // Status — colored menu showing the badge
+                    HStack {
+                        Text("Status")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Menu {
+                            ForEach(ApplicationStatus.allCases, id: \.self) { s in
+                                Button {
+                                    viewModel.status = s
+                                } label: {
+                                    HStack {
+                                        StatusBadgeView(status: s)
+                                        if s == viewModel.status {
+                                            Spacer()
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            StatusBadgeView(status: viewModel.status)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
+                        .accessibilityIdentifier("statusPicker")
+                    }
+
+                    // Date — plain text input, no stepper
+                    HStack {
+                        Text("Date Applied")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        TextField("MM/DD/YYYY", text: $dateText)
+                            .frame(width: 100)
+                            .multilineTextAlignment(.trailing)
+                            .font(.system(size: 13).monospacedDigit())
+                            .foregroundStyle(dateInvalid ? .red : .primary)
+                            .accessibilityIdentifier("dateAppliedPicker")
+                            .onSubmit { commitDate() }
+                            .onChange(of: dateText) { _ in
+                                if dateInvalid { dateInvalid = false }
+                            }
+                        if dateInvalid {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundStyle(.red)
+                                .font(.caption)
                         }
                     }
-                    .accessibilityIdentifier("statusPicker")
-
-                    DatePicker(
-                        "Date Applied",
-                        selection: $viewModel.dateApplied,
-                        displayedComponents: .date
-                    )
-                    .accessibilityIdentifier("dateAppliedPicker")
                 }
             }
             .formStyle(.grouped)
@@ -81,20 +117,19 @@ struct JobApplicationFormView: View {
 
             // Button row
             HStack {
-                Button("Cancel") {
-                    onDismiss()
-                }
-                .accessibilityIdentifier("cancelButton")
-                .keyboardShortcut(.cancelAction)
+                Button("Cancel") { onDismiss() }
+                    .accessibilityIdentifier("cancelButton")
+                    .keyboardShortcut(.cancelAction)
 
                 Spacer()
 
                 Button("Save") {
-                    if let app = viewModel.buildApplication() {
+                    commitDate()
+                    if !dateInvalid, let app = viewModel.buildApplication() {
                         onSave(app)
                     }
                 }
-                .disabled(!viewModel.isValid)
+                .disabled(!viewModel.isValid || dateInvalid)
                 .buttonStyle(.borderedProminent)
                 .accessibilityIdentifier("saveButton")
                 .keyboardShortcut(.defaultAction)
@@ -102,6 +137,16 @@ struct JobApplicationFormView: View {
             .padding()
         }
         .frame(minWidth: 400, minHeight: 380)
+    }
+
+    private func commitDate() {
+        if let parsed = date(from: dateText) {
+            viewModel.dateApplied = parsed
+            dateText = string(from: parsed)
+            dateInvalid = false
+        } else {
+            dateInvalid = true
+        }
     }
 }
 

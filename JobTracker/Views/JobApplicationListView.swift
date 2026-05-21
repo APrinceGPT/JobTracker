@@ -3,6 +3,19 @@
 
 import SwiftUI
 
+// MARK: - Date formatting helpers (MM/DD/YYYY text input)
+// Internal so JobApplicationFormView can share the same formatter.
+
+let dateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "MM/dd/yyyy"
+    f.isLenient  = true
+    return f
+}()
+
+func string(from date: Date) -> String { dateFormatter.string(from: date) }
+func date(from string: String) -> Date? { dateFormatter.date(from: string) }
+
 /// The main window content: a toolbar above an inline-editable list of applications.
 struct JobApplicationListView: View {
 
@@ -148,23 +161,31 @@ struct JobApplicationListView: View {
 private struct InlineEditRow: View {
 
     @State private var app: JobApplication
+    /// Editable text for the date field (MM/DD/YYYY).
+    @State private var dateText: String
+    /// True when the date text cannot be parsed.
+    @State private var dateInvalid: Bool = false
+
     var onCommit: (JobApplication) -> Void
     var onDelete: () -> Void
 
     init(app: JobApplication, onCommit: @escaping (JobApplication) -> Void, onDelete: @escaping () -> Void) {
-        _app = State(initialValue: app)
+        _app      = State(initialValue: app)
+        _dateText = State(initialValue: string(from: app.dateApplied))
         self.onCommit = onCommit
         self.onDelete = onDelete
     }
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             // Company name
             TextField("Company", text: $app.companyName)
                 .frame(minWidth: 120, maxWidth: 180)
                 .textFieldStyle(.plain)
                 .accessibilityIdentifier("companyName_\(app.id)")
                 .onSubmit { onCommit(app) }
+
+            columnDivider
 
             // Job title
             TextField("Job Title", text: $app.jobTitle)
@@ -173,35 +194,81 @@ private struct InlineEditRow: View {
                 .accessibilityIdentifier("jobTitle_\(app.id)")
                 .onSubmit { onCommit(app) }
 
-            // Status dropdown
-            Picker("", selection: $app.status) {
+            columnDivider
+
+            // Status — colored menu showing the badge as the label
+            Menu {
                 ForEach(ApplicationStatus.allCases, id: \.self) { s in
-                    Text(s.displayLabel).tag(s)
+                    Button {
+                        app.status = s
+                        onCommit(app)
+                    } label: {
+                        HStack {
+                            StatusBadgeView(status: s)
+                            if s == app.status {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
                 }
+            } label: {
+                StatusBadgeView(status: app.status)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .labelsHidden()
-            .frame(width: 110)
+            .menuStyle(.borderlessButton)
+            .frame(width: 118)
             .accessibilityIdentifier("statusPicker_\(app.id)")
-            .onChange(of: app.status) { onCommit(app) }
+
+            columnDivider
 
             // Description
             TextField("Description", text: $app.jobDescription)
                 .frame(minWidth: 100, maxWidth: .infinity)
                 .textFieldStyle(.plain)
                 .foregroundStyle(.secondary)
+                .font(.system(size: 12))
                 .accessibilityIdentifier("description_\(app.id)")
                 .onSubmit { onCommit(app) }
 
-            // Date applied
-            DatePicker("", selection: $app.dateApplied, displayedComponents: .date)
-                .labelsHidden()
-                .frame(width: 110)
+            columnDivider
+
+            // Date — plain text MM/DD/YYYY, no stepper arrows
+            TextField("MM/DD/YYYY", text: $dateText)
+                .frame(width: 90)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12).monospacedDigit())
+                .foregroundStyle(dateInvalid ? .red : .primary)
                 .accessibilityIdentifier("dateApplied_\(app.id)")
-                .onChange(of: app.dateApplied) { onCommit(app) }
+                .onSubmit { commitDate() }
+                .onChange(of: dateText) { _ in
+                    // Clear error as the user types
+                    if dateInvalid { dateInvalid = false }
+                }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 5)
+        .padding(.horizontal, 8)
         .contextMenu {
             Button("Delete", role: .destructive) { onDelete() }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private var columnDivider: some View {
+        Divider()
+            .frame(height: 16)
+            .padding(.horizontal, 6)
+    }
+
+    private func commitDate() {
+        if let parsed = date(from: dateText) {
+            app.dateApplied = parsed
+            dateText = string(from: parsed) // normalise format
+            dateInvalid = false
+            onCommit(app)
+        } else {
+            dateInvalid = true
         }
     }
 }
