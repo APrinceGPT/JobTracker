@@ -86,6 +86,20 @@ Initial release of JobTracker, built end-to-end using Test-Driven Development (T
 
 ---
 
+## [1.2.1] - 2026-05-21
+
+### Fixed
+
+- **Status badge colors not visible** — the previous implementation used HSB colors with low-opacity backgrounds (10–15%), making amber, blue, violet, and teal nearly invisible against the window background in both light and dark mode. Replaced with solid opaque fills and white semibold labels, matching the convention used by tags in apps like Xcode, GitHub, and Linear. All six statuses are now equally distinct and immediately readable by color alone:
+  - Pending: orange-amber
+  - Applied: blue
+  - In Process: purple
+  - Waiting: cyan-teal
+  - Hired: green
+  - Ghosted: red
+
+---
+
 ## [1.2.0] - 2026-05-21
 
 ### Changed
