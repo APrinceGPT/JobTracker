@@ -196,27 +196,21 @@ private struct InlineEditRow: View {
 
             columnDivider
 
-            // Status — colored menu showing the badge as the label
-            Menu {
-                ForEach(ApplicationStatus.allCases, id: \.self) { s in
-                    Button {
-                        app.status = s
-                        onCommit(app)
-                    } label: {
-                        HStack {
-                            StatusBadgeView(status: s)
-                            if s == app.status {
-                                Spacer()
-                                Image(systemName: "checkmark")
-                            }
-                        }
+            // Status — badge overlays a transparent Picker so the badge
+            // renders in a plain view environment, unaffected by button styling.
+            ZStack(alignment: .leading) {
+                Picker("", selection: $app.status) {
+                    ForEach(ApplicationStatus.allCases, id: \.self) { s in
+                        Text(s.displayLabel).tag(s)
                     }
                 }
-            } label: {
+                .labelsHidden()
+                .opacity(0.015) // nearly invisible; just captures the interaction
+                .onChange(of: app.status) { _ in onCommit(app) }
+
                 StatusBadgeView(status: app.status)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .allowsHitTesting(false) // let the Picker underneath handle taps
             }
-            .menuStyle(.borderlessButton)
             .frame(width: 118)
             .accessibilityIdentifier("statusPicker_\(app.id)")
 

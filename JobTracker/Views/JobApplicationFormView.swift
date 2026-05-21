@@ -61,29 +61,23 @@ struct JobApplicationFormView: View {
                 }
 
                 Section("Status & Date") {
-                    // Status — colored menu showing the badge
+                    // Status — badge overlays a transparent Picker
                     HStack {
                         Text("Status")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Menu {
-                            ForEach(ApplicationStatus.allCases, id: \.self) { s in
-                                Button {
-                                    viewModel.status = s
-                                } label: {
-                                    HStack {
-                                        StatusBadgeView(status: s)
-                                        if s == viewModel.status {
-                                            Spacer()
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
+                        ZStack(alignment: .trailing) {
+                            Picker("", selection: $viewModel.status) {
+                                ForEach(ApplicationStatus.allCases, id: \.self) { s in
+                                    Text(s.displayLabel).tag(s)
                                 }
                             }
-                        } label: {
+                            .labelsHidden()
+                            .opacity(0.015)
+
                             StatusBadgeView(status: viewModel.status)
+                                .allowsHitTesting(false)
                         }
-                        .menuStyle(.borderlessButton)
                         .fixedSize()
                         .accessibilityIdentifier("statusPicker")
                     }

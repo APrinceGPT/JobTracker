@@ -86,6 +86,16 @@ Initial release of JobTracker, built end-to-end using Test-Driven Development (T
 
 ---
 
+## [1.2.2] - 2026-05-21
+
+### Fixed
+
+- **Status badge colors still invisible** — root cause identified: `StatusBadgeView` was used as the label of a `Menu` with `.menuStyle(.borderlessButton)`. On macOS, the borderless button menu style injects its own rendering environment into the label, overriding all background and foreground color modifiers on child views — making every badge appear colorless regardless of what colors were set.
+
+  Fix: replaced the `Menu` + label pattern with a `ZStack` in both the list row and the add form. A nearly-transparent `Picker` (opacity 0.015) sits on top to capture interaction; the `StatusBadgeView` renders underneath it in a plain view environment with `.allowsHitTesting(false)`, completely isolated from any button styling inheritance. The badge now renders its solid fill color exactly as defined.
+
+---
+
 ## [1.2.1] - 2026-05-21
 
 ### Fixed
