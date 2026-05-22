@@ -15,9 +15,12 @@ struct ContentView: View {
             if let app = viewModel.selectedApplication {
                 DescriptionDetailView(
                     application: app,
-                    onClear: { viewModel.clearDescription(for: $0) }
+                    onClear: { viewModel.clearDescription(for: $0) },
+                    onSaveDescription: { application, newDescription in
+                        viewModel.saveDescription(for: application, description: newDescription)
+                    }
                 )
-                .id("\(app.id)\(app.companyName)\(app.jobTitle)\(app.status)\(app.dateApplied)")
+                .id("\(app.id)\(app.companyName)\(app.jobTitle)\(app.status)\(app.dateApplied)\(app.jobDescription)")
             } else {
                 Text("Select an application to view its description.")
                     .foregroundStyle(.tertiary)

@@ -8,6 +8,10 @@ struct DescriptionDetailView: View {
 
     let application: JobApplication
     var onClear: (JobApplication) -> Void
+    var onSaveDescription: (JobApplication, String) -> Void
+
+    @State private var isEditingDescription: Bool = false
+    @State private var editedDescription: String = ""
 
     private var hasDescription: Bool {
         !application.jobDescription.isEmpty
@@ -73,15 +77,31 @@ struct DescriptionDetailView: View {
 
                     Divider()
 
-                    // Description
-                    if hasDescription {
+                    // Description — inline editable
+                    if isEditingDescription {
+                        TextEditor(text: $editedDescription)
+                            .font(.body)
+                            .frame(minHeight: 120, maxHeight: .infinity)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(Color.accentColor, lineWidth: 1)
+                            )
+                    } else if hasDescription {
                         Text(application.jobDescription)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .onTapGesture(count: 2) {
+                                editedDescription = application.jobDescription
+                                isEditingDescription = true
+                            }
                     } else {
-                        Text("No description added yet. Use the + button to add one when creating an application, or edit this application to include a description.")
+                        Text("Double-click to add a description…")
                             .foregroundStyle(.tertiary)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .onTapGesture(count: 2) {
+                                editedDescription = ""
+                                isEditingDescription = true
+                            }
                     }
                 }
                 .padding()
@@ -94,11 +114,24 @@ struct DescriptionDetailView: View {
             HStack {
                 Button("Clear") {
                     onClear(application)
+                    isEditingDescription = false
                 }
                 .foregroundStyle(.red)
-                .disabled(!hasDescription)
+                .disabled(!hasDescription && !isEditingDescription)
 
                 Spacer()
+
+                if isEditingDescription {
+                    Button("Cancel") {
+                        isEditingDescription = false
+                    }
+
+                    Button("Save") {
+                        onSaveDescription(application, editedDescription)
+                        isEditingDescription = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
 
                 Button {
                     NSPasteboard.general.clearContents()
@@ -160,6 +193,7 @@ private struct DetailRow<Content: View>: View {
             jobDescription: "We are looking for a skilled iOS engineer to join our team.",
             status: .applied
         ),
-        onClear: { _ in }
+        onClear: { _ in },
+        onSaveDescription: { _, _ in }
     )
 }

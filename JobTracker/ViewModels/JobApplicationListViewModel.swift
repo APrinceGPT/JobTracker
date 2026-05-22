@@ -102,6 +102,13 @@ final class JobApplicationListViewModel: ObservableObject {
         updateInline(updated)
     }
 
+    /// Updates the job description for the given application and persists the change.
+    func saveDescription(for application: JobApplication, description: String) {
+        var updated = application
+        updated.jobDescription = description
+        updateInline(updated)
+    }
+
     /// Requests deletion of the currently selected application.
     func requestDeleteSelected() {
         guard selectedApplicationID != nil else { return }
