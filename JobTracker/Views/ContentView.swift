@@ -5,7 +5,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @StateObject var viewModel: JobApplicationListViewModel
+    @ObservedObject var viewModel: JobApplicationListViewModel
 
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -17,6 +17,7 @@ struct ContentView: View {
                     application: app,
                     onClear: { viewModel.clearDescription(for: $0) }
                 )
+                .id("\(app.id)\(app.companyName)\(app.jobTitle)\(app.status)\(app.dateApplied)")
             } else {
                 Text("Select an application to view its description.")
                     .foregroundStyle(.tertiary)

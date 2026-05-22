@@ -17,34 +17,45 @@ func makeModelContainer(storedInMemoryOnly: Bool = false) -> ModelContainer? {
 struct JobTrackerApp: App {
 
     @State private var containerError: Bool = false
+    @StateObject private var viewModel: JobApplicationListViewModel
 
     let container: ModelContainer
 
     init() {
+        let resolvedContainer: ModelContainer
+        var hadError = false
         if let disk = makeModelContainer(storedInMemoryOnly: false) {
-            container = disk
+            resolvedContainer = disk
         } else if let memory = makeModelContainer(storedInMemoryOnly: true) {
-            container = memory
-            containerError = true
+            resolvedContainer = memory
+            hadError = true
         } else {
-            // Both attempts failed — this should never happen in practice.
             fatalError("Unable to create ModelContainer from either disk or in-memory config")
         }
+        self.container = resolvedContainer
+        _containerError = State(initialValue: hadError)
+        _viewModel = StateObject(wrappedValue: JobApplicationListViewModel(
+            store: SwiftDataJobApplicationStore(modelContext: resolvedContainer.mainContext)
+        ))
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(
-                viewModel: JobApplicationListViewModel(
-                    store: SwiftDataJobApplicationStore(modelContext: container.mainContext)
-                )
-            )
-            .alert("Storage Unavailable", isPresented: $containerError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("Your job applications could not be loaded from disk. Data will not be saved this session.")
-            }
+            ContentView(viewModel: viewModel)
+                .alert("Storage Unavailable", isPresented: $containerError) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Your job applications could not be loaded from disk. Data will not be saved this session.")
+                }
         }
         .modelContainer(container)
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Application") {
+                    viewModel.presentAddForm()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+        }
     }
 }

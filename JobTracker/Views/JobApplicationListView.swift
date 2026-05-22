@@ -151,19 +151,19 @@ struct JobApplicationListView: View {
     // MARK: - Column header
 
     private var columnHeader: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
             Text("Company")
-                .frame(minWidth: 120, maxWidth: 180, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Text("Job Title")
-                .frame(minWidth: 120, maxWidth: 180, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
             Text("Status")
-                .frame(width: 110, alignment: .leading)
+                .frame(width: 130, alignment: .leading)
             Text("Date Applied")
-                .frame(width: 110, alignment: .leading)
+                .frame(width: 100, alignment: .leading)
         }
         .font(.caption)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 20)
         .padding(.vertical, 4)
     }
 
@@ -177,6 +177,8 @@ struct JobApplicationListView: View {
                 ForEach(viewModel.filteredApplications) { app in
                     InlineEditRow(app: app) { updated in
                         viewModel.updateInline(updated)
+                    } onEdit: {
+                        viewModel.presentEditForm(for: app)
                     } onDelete: {
                         viewModel.selectedApplicationID = app.id
                         viewModel.requestDeleteSelected()
@@ -198,7 +200,6 @@ struct JobApplicationListView: View {
             } label: {
                 Label("Add Application", systemImage: "plus")
             }
-            .keyboardShortcut("n", modifiers: .command)
             .accessibilityIdentifier("addApplicationButton")
         }
 
@@ -238,12 +239,14 @@ private struct InlineEditRow: View {
     @State private var dateInvalid: Bool = false
 
     var onCommit: (JobApplication) -> Void
+    var onEdit: () -> Void
     var onDelete: () -> Void
 
-    init(app: JobApplication, onCommit: @escaping (JobApplication) -> Void, onDelete: @escaping () -> Void) {
+    init(app: JobApplication, onCommit: @escaping (JobApplication) -> Void, onEdit: @escaping () -> Void, onDelete: @escaping () -> Void) {
         _app      = State(initialValue: app)
         _dateText = State(initialValue: string(from: app.dateApplied))
         self.onCommit = onCommit
+        self.onEdit = onEdit
         self.onDelete = onDelete
     }
 
@@ -260,21 +263,17 @@ private struct InlineEditRow: View {
 
             // Company name
             TextField("Company", text: $app.companyName)
-                .frame(minWidth: 120, maxWidth: 180)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .textFieldStyle(.plain)
                 .accessibilityIdentifier("companyName_\(app.id)")
                 .onSubmit { onCommit(app) }
 
-            columnDivider
-
             // Job title
             TextField("Job Title", text: $app.jobTitle)
-                .frame(minWidth: 120, maxWidth: 180)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .textFieldStyle(.plain)
                 .accessibilityIdentifier("jobTitle_\(app.id)")
                 .onSubmit { onCommit(app) }
-
-            columnDivider
 
             // Status — badge overlays a transparent Picker so the badge
             // renders in a plain view environment, unaffected by button styling.
@@ -291,14 +290,12 @@ private struct InlineEditRow: View {
                 StatusBadgeView(status: app.status)
                     .allowsHitTesting(false) // let the Picker underneath handle taps
             }
-            .frame(width: 118)
+            .frame(width: 130, alignment: .leading)
             .accessibilityIdentifier("statusPicker_\(app.id)")
-
-            columnDivider
 
             // Date — plain text MM/DD/YYYY, no stepper arrows
             TextField("MM/DD/YYYY", text: $dateText)
-                .frame(width: 90)
+                .frame(width: 100, alignment: .leading)
                 .textFieldStyle(.plain)
                 .font(.system(size: 12).monospacedDigit())
                 .foregroundStyle(dateInvalid ? .red : .primary)
@@ -312,17 +309,13 @@ private struct InlineEditRow: View {
         .padding(.vertical, 5)
         .padding(.horizontal, 8)
         .contextMenu {
+            Button("Edit") { onEdit() }
+            Divider()
             Button("Delete", role: .destructive) { onDelete() }
         }
     }
 
     // MARK: - Helpers
-
-    private var columnDivider: some View {
-        Divider()
-            .frame(height: 16)
-            .padding(.horizontal, 6)
-    }
 
     private func commitDate() {
         if let parsed = date(from: dateText) {
