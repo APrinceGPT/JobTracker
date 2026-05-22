@@ -7,69 +7,75 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		/* JobTracker Sources */
-		AA000001 /* JobTrackerApp.swift */                   = {isa = PBXBuildFile; fileRef = AA100001; };
-		AA000002 /* ContentView.swift */                     = {isa = PBXBuildFile; fileRef = AA100002; };
-		AA000003 /* ApplicationStatus.swift */               = {isa = PBXBuildFile; fileRef = AA100003; };
-		AA000004 /* JobApplication.swift */                  = {isa = PBXBuildFile; fileRef = AA100004; };
-		AA000005 /* JobApplicationStoreProtocol.swift */     = {isa = PBXBuildFile; fileRef = AA100005; };
-		AA000006 /* InMemoryJobApplicationStore.swift */     = {isa = PBXBuildFile; fileRef = AA100006; };
-		AA000007 /* SwiftDataJobApplicationStore.swift */    = {isa = PBXBuildFile; fileRef = AA100007; };
-		AA000008 /* StatusBadgeView.swift */                 = {isa = PBXBuildFile; fileRef = AA100008; };
-		AA000009 /* JobApplicationFormView.swift */          = {isa = PBXBuildFile; fileRef = AA100009; };
-		AA000015 /* JobApplicationListView.swift */          = {isa = PBXBuildFile; fileRef = AA100015; };
-		AA000016 /* JobApplicationListViewModel.swift */     = {isa = PBXBuildFile; fileRef = AA100016; };
-		AA000017 /* JobApplicationFormViewModel.swift */     = {isa = PBXBuildFile; fileRef = AA100017; };
-
-		/* JobTrackerTests Sources */
-		AA000010 /* ApplicationStatusTests.swift */          = {isa = PBXBuildFile; fileRef = AA100010; };
-		AA000011 /* JobApplicationModelTests.swift */        = {isa = PBXBuildFile; fileRef = AA100011; };
-		AA000012 /* InMemoryJobApplicationStoreTests.swift */= {isa = PBXBuildFile; fileRef = AA100012; };
-		AA000013 /* PersistenceTests.swift */                = {isa = PBXBuildFile; fileRef = AA100013; };
-		AA000014 /* UIComponentTests.swift */                = {isa = PBXBuildFile; fileRef = AA100014; };
-		AA000018 /* TestFixtures.swift */                    = {isa = PBXBuildFile; fileRef = AA100018; };
-
-		/* Frameworks */
-		AA000020 /* SwiftData.framework */                   = {isa = PBXBuildFile; fileRef = AA100020; };
+		1F02A4108C5554C4FAEE87FF /* DateFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B85B631E618FBC23A427D15 /* DateFormatting.swift */; };
+		AA000001 /* JobTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001 /* JobTrackerApp.swift */; };
+		AA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100002 /* ContentView.swift */; };
+		AA000003 /* ApplicationStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100003 /* ApplicationStatus.swift */; };
+		AA000004 /* JobApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100004 /* JobApplication.swift */; };
+		AA000005 /* JobApplicationStoreProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100005 /* JobApplicationStoreProtocol.swift */; };
+		AA000006 /* InMemoryJobApplicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100006 /* InMemoryJobApplicationStore.swift */; };
+		AA000007 /* SwiftDataJobApplicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100007 /* SwiftDataJobApplicationStore.swift */; };
+		AA000008 /* StatusBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100008 /* StatusBadgeView.swift */; };
+		AA000009 /* JobApplicationFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100009 /* JobApplicationFormView.swift */; };
+		AA000010 /* ApplicationStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* ApplicationStatusTests.swift */; };
+		AA000011 /* JobApplicationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011 /* JobApplicationModelTests.swift */; };
+		AA000012 /* InMemoryJobApplicationStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100012 /* InMemoryJobApplicationStoreTests.swift */; };
+		AA000013 /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100013 /* PersistenceTests.swift */; };
+		AA000014 /* UIComponentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100014 /* UIComponentTests.swift */; };
+		AA000015 /* JobApplicationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100015 /* JobApplicationListView.swift */; };
+		AA000016 /* JobApplicationListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100016 /* JobApplicationListViewModel.swift */; };
+		AA000017 /* JobApplicationFormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100017 /* JobApplicationFormViewModel.swift */; };
+		AA000018 /* TestFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100018 /* TestFixtures.swift */; };
+		AA000019 /* DescriptionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100019 /* DescriptionDetailView.swift */; };
+		AA000020 /* SwiftData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA100020 /* SwiftData.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		AA900002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA600000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA600001;
+			remoteInfo = JobTracker;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		AA100001 /* JobTrackerApp.swift */                   = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobTrackerApp.swift; sourceTree = "<group>"; };
-		AA100002 /* ContentView.swift */                     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		AA100003 /* ApplicationStatus.swift */               = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationStatus.swift; sourceTree = "<group>"; };
-		AA100004 /* JobApplication.swift */                  = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplication.swift; sourceTree = "<group>"; };
-		AA100005 /* JobApplicationStoreProtocol.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationStoreProtocol.swift; sourceTree = "<group>"; };
-		AA100006 /* InMemoryJobApplicationStore.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryJobApplicationStore.swift; sourceTree = "<group>"; };
-		AA100007 /* SwiftDataJobApplicationStore.swift */    = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataJobApplicationStore.swift; sourceTree = "<group>"; };
-		AA100008 /* StatusBadgeView.swift */                 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadgeView.swift; sourceTree = "<group>"; };
-		AA100009 /* JobApplicationFormView.swift */          = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationFormView.swift; sourceTree = "<group>"; };
-		AA100015 /* JobApplicationListView.swift */          = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationListView.swift; sourceTree = "<group>"; };
-		AA100016 /* JobApplicationListViewModel.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationListViewModel.swift; sourceTree = "<group>"; };
-		AA100017 /* JobApplicationFormViewModel.swift */     = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationFormViewModel.swift; sourceTree = "<group>"; };
-
-		AA100010 /* ApplicationStatusTests.swift */          = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationStatusTests.swift; sourceTree = "<group>"; };
-		AA100011 /* JobApplicationModelTests.swift */        = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationModelTests.swift; sourceTree = "<group>"; };
-		AA100012 /* InMemoryJobApplicationStoreTests.swift */= {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryJobApplicationStoreTests.swift; sourceTree = "<group>"; };
-		AA100013 /* PersistenceTests.swift */                = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
-		AA100014 /* UIComponentTests.swift */                = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponentTests.swift; sourceTree = "<group>"; };
-		AA100018 /* TestFixtures.swift */                    = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
-
-		AA100020 /* SwiftData.framework */                   = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
-
-		AA300001 /* JobTracker.app */                        = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JobTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA300002 /* JobTrackerTests.xctest */                = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JobTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B85B631E618FBC23A427D15 /* DateFormatting.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DateFormatting.swift; sourceTree = "<group>"; };
+		AA100001 /* JobTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobTrackerApp.swift; sourceTree = "<group>"; };
+		AA100002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA100003 /* ApplicationStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationStatus.swift; sourceTree = "<group>"; };
+		AA100004 /* JobApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplication.swift; sourceTree = "<group>"; };
+		AA100005 /* JobApplicationStoreProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationStoreProtocol.swift; sourceTree = "<group>"; };
+		AA100006 /* InMemoryJobApplicationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryJobApplicationStore.swift; sourceTree = "<group>"; };
+		AA100007 /* SwiftDataJobApplicationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataJobApplicationStore.swift; sourceTree = "<group>"; };
+		AA100008 /* StatusBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadgeView.swift; sourceTree = "<group>"; };
+		AA100009 /* JobApplicationFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationFormView.swift; sourceTree = "<group>"; };
+		AA100010 /* ApplicationStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationStatusTests.swift; sourceTree = "<group>"; };
+		AA100011 /* JobApplicationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationModelTests.swift; sourceTree = "<group>"; };
+		AA100012 /* InMemoryJobApplicationStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryJobApplicationStoreTests.swift; sourceTree = "<group>"; };
+		AA100013 /* PersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceTests.swift; sourceTree = "<group>"; };
+		AA100014 /* UIComponentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIComponentTests.swift; sourceTree = "<group>"; };
+		AA100015 /* JobApplicationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationListView.swift; sourceTree = "<group>"; };
+		AA100016 /* JobApplicationListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationListViewModel.swift; sourceTree = "<group>"; };
+		AA100017 /* JobApplicationFormViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JobApplicationFormViewModel.swift; sourceTree = "<group>"; };
+		AA100018 /* TestFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFixtures.swift; sourceTree = "<group>"; };
+		AA100019 /* DescriptionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DescriptionDetailView.swift; sourceTree = "<group>"; };
+		AA100020 /* SwiftData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftData.framework; path = System/Library/Frameworks/SwiftData.framework; sourceTree = SDKROOT; };
+		AA300001 /* JobTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JobTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA300002 /* JobTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JobTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AA400001 /* Frameworks - app */ = {
+		AA400001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000020 /* SwiftData.framework */,
+				AA000020 /* SwiftData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA400002 /* Frameworks - tests */ = {
+		AA400002 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -79,7 +85,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		AA500000 /* root */ = {
+		AA500000 = {
 			isa = PBXGroup;
 			children = (
 				AA500001 /* JobTracker */,
@@ -97,47 +103,9 @@
 				AA500011 /* Store */,
 				AA500012 /* Views */,
 				AA500013 /* ViewModels */,
+				9B85B631E618FBC23A427D15 /* DateFormatting.swift */,
 			);
 			path = JobTracker;
-			sourceTree = "<group>";
-		};
-		AA500010 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				AA100003 /* ApplicationStatus.swift */,
-				AA100004 /* JobApplication.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		AA500011 /* Store */ = {
-			isa = PBXGroup;
-			children = (
-				AA100005 /* JobApplicationStoreProtocol.swift */,
-				AA100006 /* InMemoryJobApplicationStore.swift */,
-				AA100007 /* SwiftDataJobApplicationStore.swift */,
-			);
-			path = Store;
-			sourceTree = "<group>";
-		};
-		AA500012 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				AA100002 /* ContentView.swift */,
-				AA100008 /* StatusBadgeView.swift */,
-				AA100009 /* JobApplicationFormView.swift */,
-				AA100015 /* JobApplicationListView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		AA500013 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				AA100016 /* JobApplicationListViewModel.swift */,
-				AA100017 /* JobApplicationFormViewModel.swift */,
-			);
-			path = ViewModels;
 			sourceTree = "<group>";
 		};
 		AA500002 /* JobTrackerTests */ = {
@@ -170,12 +138,52 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		AA500010 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA100003 /* ApplicationStatus.swift */,
+				AA100004 /* JobApplication.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AA500011 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				AA100005 /* JobApplicationStoreProtocol.swift */,
+				AA100006 /* InMemoryJobApplicationStore.swift */,
+				AA100007 /* SwiftDataJobApplicationStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		AA500012 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA100002 /* ContentView.swift */,
+				AA100008 /* StatusBadgeView.swift */,
+				AA100009 /* JobApplicationFormView.swift */,
+				AA100019 /* DescriptionDetailView.swift */,
+				AA100015 /* JobApplicationListView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AA500013 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AA100016 /* JobApplicationListViewModel.swift */,
+				AA100017 /* JobApplicationFormViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		AA600001 /* JobTracker */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA700001;
+			buildConfigurationList = AA700001 /* Build configuration list for PBXNativeTarget "JobTracker" */;
 			buildPhases = (
 				AA800001 /* Sources */,
 				AA400001 /* Frameworks */,
@@ -192,7 +200,7 @@
 		};
 		AA600002 /* JobTrackerTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA700002;
+			buildConfigurationList = AA700002 /* Build configuration list for PBXNativeTarget "JobTrackerTests" */;
 			buildPhases = (
 				AA800002 /* Sources */,
 				AA400002 /* Frameworks */,
@@ -226,7 +234,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AA700000;
+			buildConfigurationList = AA700000 /* Build configuration list for PBXProject "JobTracker" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -245,65 +253,63 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXSourcesBuildPhase section */
-		AA800001 /* Sources - app */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA000001 /* JobTrackerApp.swift */,
-				AA000002 /* ContentView.swift */,
-				AA000003 /* ApplicationStatus.swift */,
-				AA000004 /* JobApplication.swift */,
-				AA000005 /* JobApplicationStoreProtocol.swift */,
-				AA000006 /* InMemoryJobApplicationStore.swift */,
-				AA000007 /* SwiftDataJobApplicationStore.swift */,
-				AA000008 /* StatusBadgeView.swift */,
-				AA000009 /* JobApplicationFormView.swift */,
-				AA000015 /* JobApplicationListView.swift */,
-				AA000016 /* JobApplicationListViewModel.swift */,
-				AA000017 /* JobApplicationFormViewModel.swift */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA800002 /* Sources - tests */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AA000018 /* TestFixtures.swift */,
-				AA000010 /* ApplicationStatusTests.swift */,
-				AA000011 /* JobApplicationModelTests.swift */,
-				AA000012 /* InMemoryJobApplicationStoreTests.swift */,
-				AA000013 /* PersistenceTests.swift */,
-				AA000014 /* UIComponentTests.swift */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AA800003 /* Resources - app */ = {
+/* Begin PBXResourcesBuildPhase section */
+		AA800003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA800001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000001 /* JobTrackerApp.swift in Sources */,
+				AA000002 /* ContentView.swift in Sources */,
+				AA000003 /* ApplicationStatus.swift in Sources */,
+				AA000004 /* JobApplication.swift in Sources */,
+				AA000005 /* JobApplicationStoreProtocol.swift in Sources */,
+				AA000006 /* InMemoryJobApplicationStore.swift in Sources */,
+				AA000007 /* SwiftDataJobApplicationStore.swift in Sources */,
+				AA000008 /* StatusBadgeView.swift in Sources */,
+				AA000009 /* JobApplicationFormView.swift in Sources */,
+				AA000019 /* DescriptionDetailView.swift in Sources */,
+				AA000015 /* JobApplicationListView.swift in Sources */,
+				AA000016 /* JobApplicationListViewModel.swift in Sources */,
+				AA000017 /* JobApplicationFormViewModel.swift in Sources */,
+				1F02A4108C5554C4FAEE87FF /* DateFormatting.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA800002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA000018 /* TestFixtures.swift in Sources */,
+				AA000010 /* ApplicationStatusTests.swift in Sources */,
+				AA000011 /* JobApplicationModelTests.swift in Sources */,
+				AA000012 /* InMemoryJobApplicationStoreTests.swift in Sources */,
+				AA000013 /* PersistenceTests.swift in Sources */,
+				AA000014 /* UIComponentTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		AA900001 = {
+		AA900001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AA600001 /* JobTracker */;
-			targetProxy = AA900002;
-		};
-		AA900002 = {
-			isa = PBXContainerItemProxy;
-			containerPortal = AA600000 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = AA600001;
-			remoteInfo = JobTracker;
+			targetProxy = AA900002 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		AA700010 /* Debug - Project */ = {
+		AA700010 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -365,7 +371,7 @@
 			};
 			name = Debug;
 		};
-		AA700011 /* Release - Project */ = {
+		AA700011 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -418,7 +424,7 @@
 			};
 			name = Release;
 		};
-		AA700020 /* Debug - JobTracker */ = {
+		AA700020 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -443,7 +449,7 @@
 			};
 			name = Debug;
 		};
-		AA700021 /* Release - JobTracker */ = {
+		AA700021 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -468,7 +474,7 @@
 			};
 			name = Release;
 		};
-		AA700030 /* Debug - JobTrackerTests */ = {
+		AA700030 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -484,7 +490,7 @@
 			};
 			name = Debug;
 		};
-		AA700031 /* Release - JobTrackerTests */ = {
+		AA700031 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -531,7 +537,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = AA600000 /* Project object */;
 }

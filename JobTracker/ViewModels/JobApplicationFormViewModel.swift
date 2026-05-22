@@ -14,14 +14,21 @@ final class JobApplicationFormViewModel: ObservableObject {
     @Published var jobDescription: String = ""
     @Published var status: ApplicationStatus = .pending
     @Published var dateApplied: Date = Date()
+    @Published var followUpDate: Date? = nil
+    @Published var salary: String = ""
+    @Published var jobURL: String = ""
+    @Published var contactName: String = ""
+    @Published var contactEmail: String = ""
 
     // MARK: - Validation state
 
     /// True when all fields satisfy validation rules.
     var isValid: Bool {
         !companyName.trimmingCharacters(in: .whitespaces).isEmpty &&
+        companyName.count <= 100 &&
         !jobTitle.trimmingCharacters(in: .whitespaces).isEmpty &&
-        jobDescription.count <= 500
+        jobTitle.count <= 100 &&
+        jobDescription.count <= 50_000
     }
 
     /// Human-readable descriptions of current validation failures.
@@ -30,11 +37,17 @@ final class JobApplicationFormViewModel: ObservableObject {
         if companyName.trimmingCharacters(in: .whitespaces).isEmpty {
             errors.append("Company name is required")
         }
+        if companyName.count > 100 {
+            errors.append("Company name must be 100 characters or fewer")
+        }
         if jobTitle.trimmingCharacters(in: .whitespaces).isEmpty {
             errors.append("Job title is required")
         }
-        if jobDescription.count > 500 {
-            errors.append("Description must be 500 characters or fewer")
+        if jobTitle.count > 100 {
+            errors.append("Job title must be 100 characters or fewer")
+        }
+        if jobDescription.count > 50_000 {
+            errors.append("Description must be 50,000 characters or fewer")
         }
         return errors
     }
@@ -69,6 +82,11 @@ final class JobApplicationFormViewModel: ObservableObject {
         self.jobDescription = application.jobDescription
         self.status = application.status
         self.dateApplied = application.dateApplied
+        self.followUpDate = application.followUpDate
+        self.salary = application.salary
+        self.jobURL = application.jobURL
+        self.contactName = application.contactName
+        self.contactEmail = application.contactEmail
     }
 
     // MARK: - Intent
@@ -86,7 +104,12 @@ final class JobApplicationFormViewModel: ObservableObject {
             jobDescription: jobDescription,
             status: status,
             dateApplied: dateApplied,
-            lastUpdated: now
+            lastUpdated: now,
+            followUpDate: followUpDate,
+            salary: salary,
+            jobURL: jobURL,
+            contactName: contactName,
+            contactEmail: contactEmail
         )
     }
 

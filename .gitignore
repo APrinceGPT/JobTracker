@@ -2,6 +2,8 @@
 .DS_Store
 .AppleDouble
 .LSOverride
+Icon?
+._*
 
 # Xcode
 xcuserdata/
@@ -17,13 +19,42 @@ DerivedData/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Xcode build artifacts
+build/
+*.o
+*.dSYM/
+*.ipa
+*.app.dSYM.zip
 
 # SwiftPM
 .build/
 .swiftpm/
+Package.resolved
 
 # CocoaPods
 Pods/
+Podfile.lock
 
-# Build output
-build/
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+
+# Archives
+*.xcarchive
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Provisioning profiles
+*.mobileprovision
+*.provisionprofile
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.p12
+*.key

@@ -2,6 +2,8 @@
 // JobTracker
 
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 
 /// Observable state owner for JobApplicationListView.
 @MainActor
@@ -27,6 +29,12 @@ final class JobApplicationListViewModel: ObservableObject {
 
     /// Controls whether the delete-confirmation dialog is shown.
     @Published var isDeleteConfirmationPresented: Bool = false
+
+    /// Text query for filtering the list by company name or job title.
+    @Published var searchText: String = ""
+
+    /// When non-nil, only applications matching this status are shown.
+    @Published var statusFilter: ApplicationStatus? = nil
 
     /// Non-nil while a user-visible error needs to be displayed.
     @Published var errorMessage: String? = nil
@@ -70,6 +78,7 @@ final class JobApplicationListViewModel: ObservableObject {
                 try store.add(application)
             }
             isFormPresented = false
+            loadApplications()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -84,6 +93,13 @@ final class JobApplicationListViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Clears the job description for the given application and persists the change.
+    func clearDescription(for application: JobApplication) {
+        var updated = application
+        updated.jobDescription = ""
+        updateInline(updated)
     }
 
     /// Requests deletion of the currently selected application.
@@ -117,6 +133,29 @@ final class JobApplicationListViewModel: ObservableObject {
         errorMessage = nil
     }
 
+    // MARK: - Filtered list
+
+    /// Applications filtered by `searchText` and `statusFilter`.
+    var filteredApplications: [JobApplication] {
+        applications.filter { app in
+            let matchesStatus = statusFilter == nil || app.status == statusFilter
+            let matchesText: Bool
+            if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                matchesText = true
+            } else {
+                let query = searchText.lowercased()
+                matchesText = app.companyName.lowercased().contains(query)
+                           || app.jobTitle.lowercased().contains(query)
+            }
+            return matchesStatus && matchesText
+        }
+    }
+
+    /// True when search or filter are active (used for empty-state messaging).
+    var hasActiveFilters: Bool {
+        statusFilter != nil || !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
     // MARK: - Derived helpers
 
     /// The full JobApplication record for the current selection, or nil.
@@ -128,5 +167,52 @@ final class JobApplicationListViewModel: ObservableObject {
     /// True when a row is selected and deletion is meaningful.
     var canDelete: Bool {
         selectedApplicationID != nil
+    }
+
+    // MARK: - CSV Export
+
+    /// Presents a save panel and exports all applications to CSV.
+    func exportCSV() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [UTType.commaSeparatedText]
+        panel.nameFieldStringValue = "JobApplications.csv"
+        panel.title = "Export Applications"
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        let csv = buildCSV(from: applications)
+        do {
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Builds CSV string from an array of applications. Internal for testability.
+    func buildCSV(from apps: [JobApplication]) -> String {
+        let header = "Company,Job Title,Status,Date Applied,Follow-Up Date,Salary,URL,Contact Name,Contact Email,Description"
+        let rows = apps.map { app in
+            let fields: [String] = [
+                csvEscape(app.companyName),
+                csvEscape(app.jobTitle),
+                csvEscape(app.status.displayLabel),
+                csvEscape(string(from: app.dateApplied)),
+                csvEscape(app.followUpDate.map { string(from: $0) } ?? ""),
+                csvEscape(app.salary),
+                csvEscape(app.jobURL),
+                csvEscape(app.contactName),
+                csvEscape(app.contactEmail),
+                csvEscape(app.jobDescription)
+            ]
+            return fields.joined(separator: ",")
+        }
+        return ([header] + rows).joined(separator: "\n")
+    }
+
+    private func csvEscape(_ value: String) -> String {
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return value
     }
 }

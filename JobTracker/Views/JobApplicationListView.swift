@@ -3,35 +3,49 @@
 
 import SwiftUI
 
-// MARK: - Date formatting helpers (MM/DD/YYYY text input)
-// Internal so JobApplicationFormView can share the same formatter.
-
-let dateFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "MM/dd/yyyy"
-    f.isLenient  = true
-    return f
-}()
-
-func string(from date: Date) -> String { dateFormatter.string(from: date) }
-func date(from string: String) -> Date? { dateFormatter.date(from: string) }
-
 /// The main window content: a toolbar above an inline-editable list of applications.
 struct JobApplicationListView: View {
 
     @ObservedObject var viewModel: JobApplicationListViewModel
 
+    @FocusState private var searchFieldFocused: Bool
+    @State private var formVM: JobApplicationFormViewModel?
+
     var body: some View {
         Group {
-            if viewModel.applications.isEmpty {
+            if viewModel.applications.isEmpty && !viewModel.hasActiveFilters {
                 emptyStateView
             } else {
-                listView
+                VStack(spacing: 0) {
+                    searchFilterBar
+                    if viewModel.filteredApplications.isEmpty {
+                        filteredEmptyStateView
+                    } else {
+                        listView
+                    }
+                }
             }
         }
         .navigationTitle("Job Applications")
         .toolbar { toolbarItems }
-        .sheet(isPresented: $viewModel.isFormPresented) { formSheet }
+        .onChange(of: viewModel.isFormPresented) {
+            if viewModel.isFormPresented {
+                if let existing = viewModel.applicationToEdit {
+                    formVM = JobApplicationFormViewModel(editing: existing)
+                } else {
+                    formVM = JobApplicationFormViewModel()
+                }
+            }
+        }
+        .sheet(isPresented: $viewModel.isFormPresented) {
+            if let vm = formVM {
+                JobApplicationFormView(
+                    viewModel: vm,
+                    onDismiss: { viewModel.cancelForm() },
+                    onSave: { app in viewModel.save(app) }
+                )
+            }
+        }
         .confirmationDialog(
             "Delete Application",
             isPresented: $viewModel.isDeleteConfirmationPresented,
@@ -62,6 +76,50 @@ struct JobApplicationListView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+        .background {
+            Button("") { searchFieldFocused = true }
+                .keyboardShortcut("f", modifiers: .command)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+        }
+    }
+
+    // MARK: - Search & Filter bar
+
+    private var searchFilterBar: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 4) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search company or title…", text: $viewModel.searchText)
+                    .textFieldStyle(.plain)
+                    .focused($searchFieldFocused)
+                    .accessibilityIdentifier("searchField")
+                if !viewModel.searchText.isEmpty {
+                    Button {
+                        viewModel.searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(6)
+            .background(RoundedRectangle(cornerRadius: 6).fill(.quaternary))
+
+            Picker("Status", selection: $viewModel.statusFilter) {
+                Text("All Statuses").tag(ApplicationStatus?.none)
+                Divider()
+                ForEach(ApplicationStatus.allCases, id: \.self) { s in
+                    Text(s.displayLabel).tag(ApplicationStatus?.some(s))
+                }
+            }
+            .frame(width: 140)
+            .accessibilityIdentifier("statusFilterPicker")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
     }
 
     // MARK: - Empty state
@@ -78,6 +136,18 @@ struct JobApplicationListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    private var filteredEmptyStateView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 40))
+                .foregroundColor(.secondary)
+            Text("No applications match your search.")
+                .foregroundColor(.secondary)
+                .accessibilityIdentifier("filteredEmptyStateMessage")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
     // MARK: - Column header
 
     private var columnHeader: some View {
@@ -88,8 +158,6 @@ struct JobApplicationListView: View {
                 .frame(minWidth: 120, maxWidth: 180, alignment: .leading)
             Text("Status")
                 .frame(width: 110, alignment: .leading)
-            Text("Description")
-                .frame(minWidth: 100, maxWidth: .infinity, alignment: .leading)
             Text("Date Applied")
                 .frame(width: 110, alignment: .leading)
         }
@@ -106,7 +174,7 @@ struct JobApplicationListView: View {
             columnHeader
             Divider()
             List(selection: $viewModel.selectedApplicationID) {
-                ForEach(viewModel.applications) { app in
+                ForEach(viewModel.filteredApplications) { app in
                     InlineEditRow(app: app) { updated in
                         viewModel.updateInline(updated)
                     } onDelete: {
@@ -130,7 +198,18 @@ struct JobApplicationListView: View {
             } label: {
                 Label("Add Application", systemImage: "plus")
             }
+            .keyboardShortcut("n", modifiers: .command)
             .accessibilityIdentifier("addApplicationButton")
+        }
+
+        ToolbarItem(placement: .automatic) {
+            Button {
+                viewModel.exportCSV()
+            } label: {
+                Label("Export CSV", systemImage: "square.and.arrow.up")
+            }
+            .disabled(viewModel.applications.isEmpty)
+            .accessibilityIdentifier("exportButton")
         }
 
         ToolbarItem(placement: .destructiveAction) {
@@ -139,20 +218,12 @@ struct JobApplicationListView: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+            .keyboardShortcut(.delete, modifiers: [])
             .disabled(!viewModel.canDelete)
             .accessibilityIdentifier("deleteButton")
         }
     }
 
-    // MARK: - Form sheet (add only)
-
-    private var formSheet: some View {
-        JobApplicationFormView(
-            viewModel: JobApplicationFormViewModel(),
-            onDismiss: { viewModel.cancelForm() },
-            onSave: { app in viewModel.save(app) }
-        )
-    }
 }
 
 // MARK: - Inline edit row
@@ -178,6 +249,15 @@ private struct InlineEditRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
+            // Overdue indicator
+            if app.isOverdue {
+                Circle()
+                    .fill(.red)
+                    .frame(width: 6, height: 6)
+                    .padding(.trailing, 4)
+                    .accessibilityIdentifier("overdueIndicator_\(app.id)")
+            }
+
             // Company name
             TextField("Company", text: $app.companyName)
                 .frame(minWidth: 120, maxWidth: 180)
@@ -206,24 +286,13 @@ private struct InlineEditRow: View {
                 }
                 .labelsHidden()
                 .opacity(0.015) // nearly invisible; just captures the interaction
-                .onChange(of: app.status) { _ in onCommit(app) }
+                .onChange(of: app.status) { onCommit(app) }
 
                 StatusBadgeView(status: app.status)
                     .allowsHitTesting(false) // let the Picker underneath handle taps
             }
             .frame(width: 118)
             .accessibilityIdentifier("statusPicker_\(app.id)")
-
-            columnDivider
-
-            // Description
-            TextField("Description", text: $app.jobDescription)
-                .frame(minWidth: 100, maxWidth: .infinity)
-                .textFieldStyle(.plain)
-                .foregroundStyle(.secondary)
-                .font(.system(size: 12))
-                .accessibilityIdentifier("description_\(app.id)")
-                .onSubmit { onCommit(app) }
 
             columnDivider
 
@@ -235,7 +304,7 @@ private struct InlineEditRow: View {
                 .foregroundStyle(dateInvalid ? .red : .primary)
                 .accessibilityIdentifier("dateApplied_\(app.id)")
                 .onSubmit { commitDate() }
-                .onChange(of: dateText) { _ in
+                .onChange(of: dateText) {
                     // Clear error as the user types
                     if dateInvalid { dateInvalid = false }
                 }

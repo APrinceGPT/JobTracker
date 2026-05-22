@@ -429,24 +429,24 @@ final class JobApplicationFormViewModelTests: XCTestCase {
                        "isValid must be false when jobTitle contains only whitespace")
     }
 
-    func test_isValid_isFalseWhenDescriptionExceeds500Characters() {
+    func test_isValid_isFalseWhenDescriptionExceeds50000Characters() {
         let sut = JobApplicationFormViewModel()
         sut.companyName    = "Acme"
         sut.jobTitle       = "Engineer"
-        sut.jobDescription = String(repeating: "x", count: 501)
+        sut.jobDescription = String(repeating: "x", count: 50_001)
 
         XCTAssertFalse(sut.isValid,
-                       "isValid must be false when description exceeds 500 characters")
+                       "isValid must be false when description exceeds 50,000 characters")
     }
 
-    func test_isValid_isTrueWhenDescriptionIsExactly500Characters() {
+    func test_isValid_isTrueWhenDescriptionIsExactly50000Characters() {
         let sut = JobApplicationFormViewModel()
         sut.companyName    = "Acme"
         sut.jobTitle       = "Engineer"
-        sut.jobDescription = String(repeating: "x", count: 500)
+        sut.jobDescription = String(repeating: "x", count: 50_000)
 
         XCTAssertTrue(sut.isValid,
-                      "isValid must be true when description is exactly at the 500-character limit")
+                      "isValid must be true when description is exactly at the 50,000-character limit")
     }
 
     // MARK: 3c – Validation: error visibility flags
@@ -869,5 +869,314 @@ final class UIIntegrationTests: XCTestCase {
         listVM.loadApplications()
         XCTAssertTrue(listVM.applications.isEmpty,
                       "Cancelling must not persist any application")
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MARK: - 6. Search & Filter Tests
+// ---------------------------------------------------------------------------
+
+@MainActor
+final class SearchFilterTests: XCTestCase {
+
+    private var store: InMemoryJobApplicationStore!
+    private var sut: JobApplicationListViewModel!
+
+    override func setUp() {
+        super.setUp()
+        store = InMemoryJobApplicationStore()
+        sut   = JobApplicationListViewModel(store: store)
+    }
+
+    override func tearDown() {
+        sut   = nil
+        store = nil
+        super.tearDown()
+    }
+
+    func test_filteredApplications_returnsAllWhenNoFilters() throws {
+        try store.add(makeApp(companyName: "Alpha"))
+        try store.add(makeApp(companyName: "Beta"))
+        sut.loadApplications()
+
+        XCTAssertEqual(sut.filteredApplications.count, 2)
+    }
+
+    func test_filteredApplications_filtersBySearchText() throws {
+        try store.add(makeApp(companyName: "Apple"))
+        try store.add(makeApp(companyName: "Google"))
+        sut.loadApplications()
+
+        sut.searchText = "apple"
+        XCTAssertEqual(sut.filteredApplications.count, 1)
+        XCTAssertEqual(sut.filteredApplications.first?.companyName, "Apple")
+    }
+
+    func test_filteredApplications_filtersByJobTitle() throws {
+        try store.add(makeApp(companyName: "A", jobTitle: "iOS Engineer"))
+        try store.add(makeApp(companyName: "B", jobTitle: "Backend Dev"))
+        sut.loadApplications()
+
+        sut.searchText = "ios"
+        XCTAssertEqual(sut.filteredApplications.count, 1)
+        XCTAssertEqual(sut.filteredApplications.first?.jobTitle, "iOS Engineer")
+    }
+
+    func test_filteredApplications_filtersByStatus() throws {
+        try store.add(makeApp(companyName: "A", status: .applied))
+        try store.add(makeApp(companyName: "B", status: .pending))
+        sut.loadApplications()
+
+        sut.statusFilter = .applied
+        XCTAssertEqual(sut.filteredApplications.count, 1)
+        XCTAssertEqual(sut.filteredApplications.first?.companyName, "A")
+    }
+
+    func test_filteredApplications_combinesSearchAndStatusFilter() throws {
+        try store.add(makeApp(companyName: "Apple", status: .applied))
+        try store.add(makeApp(companyName: "Amazon", status: .pending))
+        try store.add(makeApp(companyName: "Google", status: .applied))
+        sut.loadApplications()
+
+        sut.searchText = "a"
+        sut.statusFilter = .applied
+        XCTAssertEqual(sut.filteredApplications.count, 1)
+        XCTAssertEqual(sut.filteredApplications.first?.companyName, "Apple")
+    }
+
+    func test_hasActiveFilters_isFalseByDefault() {
+        XCTAssertFalse(sut.hasActiveFilters)
+    }
+
+    func test_hasActiveFilters_isTrueWhenSearchTextIsSet() {
+        sut.searchText = "test"
+        XCTAssertTrue(sut.hasActiveFilters)
+    }
+
+    func test_hasActiveFilters_isTrueWhenStatusFilterIsSet() {
+        sut.statusFilter = .applied
+        XCTAssertTrue(sut.hasActiveFilters)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MARK: - 7. Follow-Up Date & Overdue Tests
+// ---------------------------------------------------------------------------
+
+final class FollowUpDateTests: XCTestCase {
+
+    func test_isOverdue_isFalseWhenNoFollowUpDate() {
+        let app = makeApp()
+        XCTAssertFalse(app.isOverdue)
+    }
+
+    func test_isOverdue_isTrueWhenFollowUpDateIsInPast() {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let app = JobApplication(
+            companyName: "X", jobTitle: "Y", jobDescription: "",
+            status: .applied, followUpDate: yesterday
+        )
+        XCTAssertTrue(app.isOverdue)
+    }
+
+    func test_isOverdue_isFalseWhenFollowUpDateIsInFuture() {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        let app = JobApplication(
+            companyName: "X", jobTitle: "Y", jobDescription: "",
+            status: .applied, followUpDate: tomorrow
+        )
+        XCTAssertFalse(app.isOverdue)
+    }
+
+    func test_isOverdue_isFalseWhenStatusIsTerminal() {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let app = JobApplication(
+            companyName: "X", jobTitle: "Y", jobDescription: "",
+            status: .hired, followUpDate: yesterday
+        )
+        XCTAssertFalse(app.isOverdue)
+    }
+
+    func test_isOverdue_isFalseWhenFollowUpDateIsToday() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let app = JobApplication(
+            companyName: "X", jobTitle: "Y", jobDescription: "",
+            status: .applied, followUpDate: today
+        )
+        XCTAssertFalse(app.isOverdue,
+                       "Follow-up date set to today must not be overdue (only past dates are overdue)")
+    }
+
+    func test_isOverdue_isFalseWhenStatusIsGhosted() {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let app = JobApplication(
+            companyName: "X", jobTitle: "Y", jobDescription: "",
+            status: .ghosted, followUpDate: yesterday
+        )
+        XCTAssertFalse(app.isOverdue,
+                       "Ghosted is terminal; overdue must be suppressed")
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MARK: - 8. New Fields Tests
+// ---------------------------------------------------------------------------
+
+@MainActor
+final class NewFieldsTests: XCTestCase {
+
+    func test_formViewModel_populatesNewFieldsInEditMode() {
+        let app = JobApplication(
+            companyName: "Co", jobTitle: "Dev", jobDescription: "",
+            salary: "$100k", jobURL: "https://example.com",
+            contactName: "Jane", contactEmail: "jane@co.com"
+        )
+        let sut = JobApplicationFormViewModel(editing: app)
+
+        XCTAssertEqual(sut.salary, "$100k")
+        XCTAssertEqual(sut.jobURL, "https://example.com")
+        XCTAssertEqual(sut.contactName, "Jane")
+        XCTAssertEqual(sut.contactEmail, "jane@co.com")
+    }
+
+    func test_buildApplication_includesNewFields() {
+        let sut = JobApplicationFormViewModel()
+        sut.companyName = "Co"
+        sut.jobTitle = "Dev"
+        sut.salary = "$150k"
+        sut.jobURL = "https://jobs.co"
+        sut.contactName = "Bob"
+        sut.contactEmail = "bob@co.com"
+
+        let result = sut.buildApplication()
+        XCTAssertEqual(result?.salary, "$150k")
+        XCTAssertEqual(result?.jobURL, "https://jobs.co")
+        XCTAssertEqual(result?.contactName, "Bob")
+        XCTAssertEqual(result?.contactEmail, "bob@co.com")
+    }
+
+    func test_buildApplication_includesFollowUpDate() {
+        let date = Date()
+        let sut = JobApplicationFormViewModel()
+        sut.companyName = "Co"
+        sut.jobTitle = "Dev"
+        sut.followUpDate = date
+
+        let result = sut.buildApplication()
+        XCTAssertEqual(result?.followUpDate, date)
+    }
+
+    func test_codable_backwardCompatibility() throws {
+        // Encode a minimal JSON without new fields (simulating old data)
+        let json = """
+        {
+            "id": "12345678-1234-1234-1234-123456789012",
+            "companyName": "Old Co",
+            "jobTitle": "Dev",
+            "jobDescription": "desc",
+            "status": "applied",
+            "dateApplied": 0,
+            "lastUpdated": 0
+        }
+        """.data(using: .utf8)!
+
+        let decoder = JSONDecoder()
+        let app = try decoder.decode(JobApplication.self, from: json)
+
+        XCTAssertEqual(app.companyName, "Old Co")
+        XCTAssertEqual(app.salary, "")
+        XCTAssertEqual(app.jobURL, "")
+        XCTAssertEqual(app.contactName, "")
+        XCTAssertEqual(app.contactEmail, "")
+        XCTAssertNil(app.followUpDate)
+    }
+}
+
+// ---------------------------------------------------------------------------
+// MARK: - 9. CSV Export Tests
+// ---------------------------------------------------------------------------
+
+@MainActor
+final class CSVExportTests: XCTestCase {
+
+    func test_buildCSV_producesHeaderRow() {
+        let store = InMemoryJobApplicationStore()
+        let sut = JobApplicationListViewModel(store: store)
+
+        let csv = sut.buildCSV(from: [])
+        XCTAssertTrue(csv.hasPrefix("Company,Job Title,Status,Date Applied"))
+    }
+
+    func test_buildCSV_includesApplicationData() throws {
+        let store = InMemoryJobApplicationStore()
+        let sut = JobApplicationListViewModel(store: store)
+        let app = JobApplication(
+            companyName: "Acme", jobTitle: "Engineer", jobDescription: "desc",
+            status: .applied, dateApplied: Date(), lastUpdated: Date(),
+            salary: "$100k"
+        )
+
+        let csv = sut.buildCSV(from: [app])
+        let lines = csv.components(separatedBy: "\n")
+        XCTAssertEqual(lines.count, 2, "CSV must have header + 1 data row")
+        XCTAssertTrue(lines[1].contains("Acme"))
+        XCTAssertTrue(lines[1].contains("$100k"))
+    }
+
+    func test_buildCSV_escapesCommasInFields() throws {
+        let store = InMemoryJobApplicationStore()
+        let sut = JobApplicationListViewModel(store: store)
+        let app = JobApplication(
+            companyName: "Acme, Inc.", jobTitle: "Engineer", jobDescription: "",
+            status: .pending, dateApplied: Date(), lastUpdated: Date()
+        )
+
+        let csv = sut.buildCSV(from: [app])
+        XCTAssertTrue(csv.contains("\"Acme, Inc.\""),
+                      "Fields with commas must be quoted")
+    }
+
+    func test_buildCSV_escapesQuotesInFields() throws {
+        let store = InMemoryJobApplicationStore()
+        let sut = JobApplicationListViewModel(store: store)
+        let app = JobApplication(
+            companyName: "He said \"hello\"", jobTitle: "Dev", jobDescription: "",
+            status: .pending, dateApplied: Date(), lastUpdated: Date()
+        )
+
+        let csv = sut.buildCSV(from: [app])
+        XCTAssertTrue(csv.contains("\"He said \"\"hello\"\"\""),
+                      "Quotes in fields must be doubled and field must be quoted")
+    }
+
+    func test_buildCSV_escapesNewlinesInFields() {
+        let store = InMemoryJobApplicationStore()
+        let sut = JobApplicationListViewModel(store: store)
+        let app = JobApplication(
+            companyName: "Acme", jobTitle: "Dev", jobDescription: "Line1\nLine2",
+            status: .pending, dateApplied: Date(), lastUpdated: Date()
+        )
+
+        let csv = sut.buildCSV(from: [app])
+        XCTAssertTrue(csv.contains("\"Line1\nLine2\""),
+                      "Fields with newlines must be quoted")
+    }
+
+    func test_buildCSV_formValidation_isInvalidWhenCompanyNameTooLong() {
+        let sut = JobApplicationFormViewModel()
+        sut.companyName = String(repeating: "A", count: 101)
+        sut.jobTitle = "Engineer"
+
+        XCTAssertFalse(sut.isValid,
+                       "isValid must be false when companyName exceeds 100 characters")
+    }
+
+    func test_buildCSV_formValidation_isInvalidWhenJobTitleTooLong() {
+        let sut = JobApplicationFormViewModel()
+        sut.companyName = "Acme"
+        sut.jobTitle = String(repeating: "B", count: 101)
+
+        XCTAssertFalse(sut.isValid,
+                       "isValid must be false when jobTitle exceeds 100 characters")
     }
 }

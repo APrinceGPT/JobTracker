@@ -16,6 +16,11 @@ final class PersistedJobApplication {
     var statusRawValue: String
     var dateApplied: Date
     var lastUpdated: Date
+    var followUpDate: Date? = nil
+    var salary: String = ""
+    var jobURL: String = ""
+    var contactName: String = ""
+    var contactEmail: String = ""
 
     init(
         id: UUID,
@@ -24,7 +29,12 @@ final class PersistedJobApplication {
         jobDescription: String,
         statusRawValue: String,
         dateApplied: Date,
-        lastUpdated: Date
+        lastUpdated: Date,
+        followUpDate: Date? = nil,
+        salary: String = "",
+        jobURL: String = "",
+        contactName: String = "",
+        contactEmail: String = ""
     ) {
         self.id               = id
         self.companyName      = companyName
@@ -33,6 +43,11 @@ final class PersistedJobApplication {
         self.statusRawValue   = statusRawValue
         self.dateApplied      = dateApplied
         self.lastUpdated      = lastUpdated
+        self.followUpDate     = followUpDate
+        self.salary           = salary
+        self.jobURL           = jobURL
+        self.contactName      = contactName
+        self.contactEmail     = contactEmail
     }
 }
 
@@ -47,7 +62,12 @@ private extension PersistedJobApplication {
             jobDescription: app.jobDescription,
             statusRawValue: app.status.rawValue,
             dateApplied: app.dateApplied,
-            lastUpdated: app.lastUpdated
+            lastUpdated: app.lastUpdated,
+            followUpDate: app.followUpDate,
+            salary: app.salary,
+            jobURL: app.jobURL,
+            contactName: app.contactName,
+            contactEmail: app.contactEmail
         )
     }
 
@@ -62,7 +82,12 @@ private extension PersistedJobApplication {
             jobDescription: jobDescription,
             status: status,
             dateApplied: dateApplied,
-            lastUpdated: lastUpdated
+            lastUpdated: lastUpdated,
+            followUpDate: followUpDate,
+            salary: salary,
+            jobURL: jobURL,
+            contactName: contactName,
+            contactEmail: contactEmail
         )
     }
 }
@@ -124,6 +149,11 @@ final class SwiftDataJobApplicationStore: JobApplicationStoreProtocol {
         persisted.statusRawValue = application.status.rawValue
         persisted.dateApplied    = application.dateApplied
         persisted.lastUpdated    = application.lastUpdated
+        persisted.followUpDate   = application.followUpDate
+        persisted.salary         = application.salary
+        persisted.jobURL         = application.jobURL
+        persisted.contactName    = application.contactName
+        persisted.contactEmail   = application.contactEmail
         try context.save()
     }
 

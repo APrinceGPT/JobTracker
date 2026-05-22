@@ -7,82 +7,82 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [1.0.0] - 2026-05-21
+## [2.0.1] - 2026-05-22
 
-Initial release of JobTracker, built end-to-end using Test-Driven Development (TDD).
+Post-release code review fixes and test coverage improvements.
+
+### Fixed
+
+- **Form sheet ViewModel recreation** — the form sheet's `JobApplicationFormViewModel` was being recreated on every parent view render pass via a computed property. If the parent re-rendered while the sheet was open (e.g. search text changed), form state could be reset. Fixed by constructing the form ViewModel once via `@State` + `onChange` when presentation begins.
+- **Incomplete form validation** — the form ViewModel's `isValid` was missing the 100-character limits for company name and job title that exist in `JobApplication.validate()`. The Save button could appear enabled when the model-layer validation would reject the input. Added `companyName.count <= 100` and `jobTitle.count <= 100` to `isValid` and corresponding entries to `validationErrors`.
+
+### Changed
+
+- **Date formatting extracted to `DateFormatting.swift`** — the module-level `dateFormatter`, `string(from:)`, and `date(from:)` functions previously lived in `JobApplicationListView.swift` but were called from the ViewModel's `buildCSV` method, creating an implicit cross-layer dependency. Moved to a dedicated file for proper discoverability.
+- **`isSalaryVisible` moved from ViewModel to View** — the salary visibility toggle is a pure UI concern (which widget renders) with no effect on model data or validation. Moved from `@Published` on `JobApplicationFormViewModel` to `@State` on `JobApplicationFormView` where it semantically belongs.
+
+### Added (Tests)
+
+- `test_isOverdue_isFalseWhenFollowUpDateIsToday` — today-boundary off-by-one verification
+- `test_isOverdue_isFalseWhenStatusIsGhosted` — ghosted terminal status suppresses overdue
+- `test_buildCSV_escapesNewlinesInFields` — CSV newline escaping coverage
+- `test_buildCSV_formValidation_isInvalidWhenCompanyNameTooLong` — 101-char company name rejected
+- `test_buildCSV_formValidation_isInvalidWhenJobTitleTooLong` — 101-char job title rejected
+
+### Reviewed and Intentionally Kept As-Is
+
+The following items were flagged during the comprehensive code review, validated against the actual codebase and runtime behavior, and determined to be either false positives or carrying net-negative tradeoffs if "fixed":
+
+- **`NSSavePanel.runModal()` on `@MainActor`** — `runModal()` runs a nested modal event loop (standard macOS pattern), not a blocking call that freezes the UI. This is the correct and idiomatic API for save panels on macOS.
+- **`filteredApplications` recalculated on every access** — with two accesses per render and a realistic dataset of 50–200 applications, the cost is sub-millisecond. Caching via Combine or `didSet` would add 10–20 lines of invalidation logic for no measurable benefit at this scale.
+- **`loadApplications()` full fetch after every mutation** — the always-fetch pattern guarantees UI/store consistency with zero risk of divergence. At N ≤ 500, the SwiftData fetch is in the microsecond range. In-place mutation would introduce a consistency risk for no user-visible improvement.
+- **`@StateObject` in `ContentView`** — while `@ObservedObject` is semantically more precise for an externally-constructed ViewModel, the ViewModel is created inline in the `WindowGroup` body and has no stored owner. Changing to `@ObservedObject` without providing a stable owner introduces a deallocation risk. The current code is the safer choice.
+
+---
+
+## [2.0.0] - 2026-05-22
+
+Major feature release with bug fixes, new fields, search/filter, and CSV export.
+
+### Fixed
+
+- **`save()` not refreshing the list** — after adding or editing an application via the form sheet, the list now reloads automatically. Previously users had to relaunch or trigger a manual reload to see changes.
+- **Edit form not pre-populating** — opening the edit form (via context menu) now correctly passes the existing application to the form ViewModel, pre-filling all fields. The form title also dynamically shows "Edit Application" vs "Add Application".
 
 ### Added
 
-#### Core Data Model
-- `JobApplication` value type (struct) with fields: company name, job title, description, status, date applied, last updated
-- `ApplicationStatus` enum with six cases: `pending`, `applied`, `inProcess`, `waiting`, `hired`, `ghosted`
-- Status transition validation via `canTransition(to:)` — enforces a directional state machine
-- `isTerminal` computed property on `ApplicationStatus` (and delegated from `JobApplication`) for `hired` and `ghosted`
-- `displayLabel` computed property on `ApplicationStatus` for human-readable UI strings
-- `validate()` method on `JobApplication` enforcing: non-empty company name and job title, max 100 characters each, max 500 characters for description
-- `summary` computed property returning `"<companyName> – <jobTitle>"` for compact display
-- `JobApplicationValidationError` enum with five cases for precise validation feedback
+- **Search and filter** — a search bar (Cmd+F to focus) filters the list live by company name or job title. A status filter picker shows only applications matching a specific status.
+- **Follow-up date with overdue indicator** — optional per-application follow-up date. When the date passes and the application is still active (not Hired/Ghosted), a red dot appears on the list row and the detail panel shows the date in red.
+- **Salary field (hidden by default)** — a privacy-first salary field that renders as a SecureField by default. An eye icon toggles visibility in both the form and the detail panel.
+- **Job URL field** — optional URL stored per application. Displayed as a clickable link in the detail panel.
+- **Contact Name and Contact Email fields** — optional fields for tracking recruiter/hiring manager info, shown in the detail panel.
+- **CSV export** — toolbar button (square-and-arrow-up icon) exports all applications to a CSV file via NSSavePanel. All fields are included with proper escaping.
+- **Keyboard shortcuts**:
+  - Cmd+N: open Add Application form
+  - Delete: delete selected application (with confirmation)
+  - Cmd+F: focus search field
+- **Backward-compatible Codable** — new fields use `decodeIfPresent` with defaults, so existing JSON data decodes without errors.
+- **SwiftData lightweight migration** — new `PersistedJobApplication` fields use default values, enabling automatic schema migration.
 
-#### Persistence Layer
-- `JobApplicationStoreProtocol` defining the full CRUD + query contract
-- `InMemoryJobApplicationStore` — dictionary-backed, used in all tests for speed and determinism
-- `SwiftDataJobApplicationStore` — production-grade persistence using SwiftData
-- `PersistedJobApplication` `@Model` class as a mapping layer, keeping the domain struct free of persistence annotations
-- All fetch operations return results sorted by `dateApplied` descending, including filtered queries
+### Changed
 
-#### Presentation Layer (MVVM)
-- `JobApplicationListViewModel` managing list state, selection, form presentation, and delete confirmation
-- `JobApplicationFormViewModel` managing form fields, real-time validation, and `buildApplication()`
-- All business logic in ViewModels; Views contain no logic
+- Form sheet height increased from 540 to 760 to accommodate new fields.
+- Detail panel now shows salary, URL, contact info, and follow-up date above the description.
+- Empty state messaging distinguishes between "no applications" and "no results matching filter".
+- `USER_GUIDE.md` fully rewritten to cover all new features, correct description limit (50,000 chars), and document keyboard shortcuts, search/filter, detail panel, and CSV export.
 
-#### User Interface
-- `JobApplicationListView` — native macOS `Table` with five columns: Company, Job Title, Status, Description, Date Applied
-- `JobApplicationFormView` — sheet form with grouped sections, inline validation errors, keyboard shortcuts (Cmd+S / Esc)
-- `StatusBadgeView` — colour-coded pill badge per status:
-  - Pending: orange
-  - Applied: blue
-  - In Process: purple
-  - Waiting: yellow
-  - Hired: green (bold, terminal)
-  - Ghosted: red (bold, terminal)
-- `ContentView` — root `NavigationStack` host
-- Toolbar with Add (+) and Delete (trash) buttons
-- Context menu on table rows: Edit, Delete
-- Double-click to edit
-- Delete confirmation dialog
-- Empty state prompt when no applications exist
-- Error alert wired to `errorMessage` on the list ViewModel
+---
 
-#### App Infrastructure
-- `JobTrackerApp` entry point with graceful `ModelContainer` initialisation:
-  - Tries disk-backed store first
-  - Falls back to in-memory store and presents a user alert on disk failure
-  - Only calls `fatalError` if both configurations fail (not possible in practice)
-- SwiftData schema and `ModelConfiguration` setup
-- Sandbox entitlement only (`com.apple.security.app-sandbox`)
-- Version 1.0.0 / Build 1
+## [1.3.0] - 2026-05-21
 
-#### Test Suite — 161 Tests
-- `ApplicationStatusTests.swift` — enum cases, raw values, Codable, transitions, display labels
-- `JobApplicationModelTests.swift` — model creation, validation rules, computed properties
-- `InMemoryJobApplicationStoreTests.swift` — CRUD, error cases, sort order, status filtering
-- `PersistenceTests.swift` — SwiftData store behaviour, cross-instance persistence
-- `UIComponentTests.swift` — ViewModel state, form validation, badge styling, toolbar actions, full integration workflows
-- `TestFixtures.swift` — shared `makeApplication()` factory used across all test files
+### Added
 
-#### Documentation
-- `README.md` — build instructions, architecture overview, test suite breakdown, build configuration, icon requirements, distribution guide, future enhancements
-- `USER_GUIDE.md` — end-user guide covering all workflows and status colour meanings
-- `DEVELOPMENT_SUMMARY.md` — full TDD development process, design decisions, quality checklist
-- `CHANGELOG.md` — this file
-
-### Technical Decisions
-
-- Value-type model (`struct`) keeps domain logic immutable and testable without mocking
-- Protocol-driven storage enables ViewModel tests to run in-memory with zero I/O
-- Validation enforced at both model layer (`validate()`) and ViewModel layer (form `isValid`) — the save path calls `validate()` as a final guard
-- `applicationToEdit` used to distinguish add vs. update in `save()` — avoids a redundant store read and silent error swallowing
-- `fetchAll(withStatus:)` consistent sort order matches `fetchAll()`, preventing display inconsistencies
+- **Full description detail panel** — selecting any row in the list opens a persistent detail panel on the right side of the window (macOS `NavigationSplitView` master-detail layout). The panel shows the full job description with the company name and job title as a header.
+- **Clear button** — empties the job description for the selected application immediately and persists the change to the store. Disabled when the description is already empty.
+- **Copy to Clipboard button** — writes the full description text to `NSPasteboard`. Disabled when the description is empty.
+- **Placeholder state** — when no row is selected, the detail column shows a subtle "Select an application to view its description." prompt.
+- `clearDescription(for:)` method on `JobApplicationListViewModel`.
+- `DescriptionDetailView` — new view (`Views/DescriptionDetailView.swift`) implementing the detail panel.
 
 ---
 
@@ -152,12 +152,78 @@ Initial release of JobTracker, built end-to-end using Test-Driven Development (T
 
 ---
 
-## Unreleased
+## [1.0.0] - 2026-05-21
 
-### Planned
-- Search and filter by company name, job title, or status
-- Notes field per application for interview feedback and follow-up actions
-- Local reminder notifications for stale applications
-- CSV export
-- Sort by any column header
-- iCloud sync via SwiftData + CloudKit (one-line configuration change)
+Initial release of JobTracker, built end-to-end using Test-Driven Development (TDD).
+
+### Added
+
+#### Core Data Model
+- `JobApplication` value type (struct) with fields: company name, job title, description, status, date applied, last updated
+- `ApplicationStatus` enum with six cases: `pending`, `applied`, `inProcess`, `waiting`, `hired`, `ghosted`
+- Status transition validation via `canTransition(to:)` — enforces a directional state machine
+- `isTerminal` computed property on `ApplicationStatus` (and delegated from `JobApplication`) for `hired` and `ghosted`
+- `displayLabel` computed property on `ApplicationStatus` for human-readable UI strings
+- `validate()` method on `JobApplication` enforcing: non-empty company name and job title, max 100 characters each, max 50,000 characters for description
+- `summary` computed property returning `"<companyName> – <jobTitle>"` for compact display
+- `JobApplicationValidationError` enum with five cases for precise validation feedback
+
+#### Persistence Layer
+- `JobApplicationStoreProtocol` defining the full CRUD + query contract
+- `InMemoryJobApplicationStore` — dictionary-backed, used in all tests for speed and determinism
+- `SwiftDataJobApplicationStore` — production-grade persistence using SwiftData
+- `PersistedJobApplication` `@Model` class as a mapping layer, keeping the domain struct free of persistence annotations
+- All fetch operations return results sorted by `dateApplied` descending, including filtered queries
+
+#### Presentation Layer (MVVM)
+- `JobApplicationListViewModel` managing list state, selection, form presentation, and delete confirmation
+- `JobApplicationFormViewModel` managing form fields, real-time validation, and `buildApplication()`
+- All business logic in ViewModels; Views contain no logic
+
+#### User Interface
+- `JobApplicationListView` — native macOS list with inline editing: Company, Job Title, Status, Date Applied
+- `JobApplicationFormView` — sheet form with grouped sections, inline validation errors, keyboard shortcuts (Cmd+S / Esc)
+- `StatusBadgeView` — colour-coded pill badge per status:
+  - Pending: orange
+  - Applied: blue
+  - In Process: purple
+  - Waiting: cyan-teal
+  - Hired: green (bold, terminal)
+  - Ghosted: red (bold, terminal)
+- `ContentView` — root `NavigationStack` host
+- Toolbar with Add (+) and Delete (trash) buttons
+- Context menu on table rows: Delete
+- Delete confirmation dialog
+- Empty state prompt when no applications exist
+- Error alert wired to `errorMessage` on the list ViewModel
+
+#### App Infrastructure
+- `JobTrackerApp` entry point with graceful `ModelContainer` initialisation:
+  - Tries disk-backed store first
+  - Falls back to in-memory store and presents a user alert on disk failure
+  - Only calls `fatalError` if both configurations fail (not possible in practice)
+- SwiftData schema and `ModelConfiguration` setup
+- Sandbox entitlement only (`com.apple.security.app-sandbox`)
+- Version 1.0.0 / Build 1
+
+#### Test Suite — 161 Tests
+- `ApplicationStatusTests.swift` — enum cases, raw values, Codable, transitions, display labels
+- `JobApplicationModelTests.swift` — model creation, validation rules, computed properties
+- `InMemoryJobApplicationStoreTests.swift` — CRUD, error cases, sort order, status filtering
+- `PersistenceTests.swift` — SwiftData store behaviour, cross-instance persistence
+- `UIComponentTests.swift` — ViewModel state, form validation, badge styling, toolbar actions, full integration workflows
+- `TestFixtures.swift` — shared `makeApplication()` factory used across all test files
+
+#### Documentation
+- `README.md` — build instructions, architecture overview, test suite breakdown, build configuration, icon requirements, distribution guide, future enhancements
+- `USER_GUIDE.md` — end-user guide covering all workflows and status colour meanings
+- `DEVELOPMENT_SUMMARY.md` — full TDD development process, design decisions, quality checklist
+- `CHANGELOG.md` — this file
+
+### Technical Decisions
+
+- Value-type model (`struct`) keeps domain logic immutable and testable without mocking
+- Protocol-driven storage enables ViewModel tests to run in-memory with zero I/O
+- Validation enforced at both model layer (`validate()`) and ViewModel layer (form `isValid`) — the save path calls `validate()` as a final guard
+- `applicationToEdit` used to distinguish add vs. update in `save()` — avoids a redundant store read and silent error swallowing
+- `fetchAll(withStatus:)` consistent sort order matches `fetchAll()`, preventing display inconsistencies

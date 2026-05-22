@@ -100,8 +100,8 @@ final class JobApplicationModelTests: XCTestCase {
     }
 
     func test_validate_throwsWhenJobDescriptionExceedsMaxLength() {
-        // Requirement: description must not exceed 500 characters.
-        let longDescription = String(repeating: "x", count: 501)
+        // Requirement: description must not exceed 50,000 characters.
+        let longDescription = String(repeating: "x", count: 50_001)
         let app = makeApplication(jobDescription: longDescription)
         XCTAssertThrowsError(try app.validate()) { error in
             guard case JobApplicationValidationError.descriptionTooLong = error else {
@@ -111,10 +111,10 @@ final class JobApplicationModelTests: XCTestCase {
     }
 
     func test_validate_succeedsWhenJobDescriptionIsExactlyMaxLength() throws {
-        let exactDescription = String(repeating: "x", count: 500)
+        let exactDescription = String(repeating: "x", count: 50_000)
         let app = makeApplication(jobDescription: exactDescription)
         XCTAssertNoThrow(try app.validate(),
-                         "500-character description is exactly at the limit and must pass")
+                         "50,000-character description is exactly at the limit and must pass")
     }
 
     func test_validate_succeedsWhenJobDescriptionIsEmpty() throws {
@@ -149,9 +149,10 @@ final class JobApplicationModelTests: XCTestCase {
     // MARK: - Equatability (identity is UUID-based)
 
     func test_twoApplicationsWithSameID_areEqual() {
-        let id  = UUID()
-        let a   = JobApplication(id: id, companyName: "X", jobTitle: "Y", jobDescription: "Z")
-        let b   = JobApplication(id: id, companyName: "X", jobTitle: "Y", jobDescription: "Z")
+        let id   = UUID()
+        let date = Date()
+        let a    = JobApplication(id: id, companyName: "X", jobTitle: "Y", jobDescription: "Z", dateApplied: date, lastUpdated: date)
+        let b    = JobApplication(id: id, companyName: "X", jobTitle: "Y", jobDescription: "Z", dateApplied: date, lastUpdated: date)
         XCTAssertEqual(a, b)
     }
 
